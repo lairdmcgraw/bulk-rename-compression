@@ -58,14 +58,10 @@ def process_image(old_path, new_path, ext):
 
     img = Image.open(old_path).convert("RGB")
 
-    if ext in (".jpg", ".jpeg"):
-        # Resize JPGs to max 1920px
-        img.thumbnail((1920, 1920), Image.LANCZOS)
-        img.save(new_path, "JPEG", quality=82, optimize=True, progressive=True)
-    else:
-        # All other formats: convert to JPG at max quality (WebP, PNG, TIFF, BMP, etc.)
-        img.thumbnail((1920, 1920), Image.LANCZOS)
-        img.save(new_path, "JPEG", quality=82, optimize=True, progressive=True)
+    # Resize to max 1920px on longest side and save as JPG
+    # Applies to all formats: JPG, WebP, PNG, TIFF, BMP, HEIC, etc.
+    img.thumbnail((1920, 1920), Image.LANCZOS)
+    img.save(new_path, "JPEG", quality=82, optimize=True, progressive=True)
 
     new_kb = os.path.getsize(new_path) / 1024
 
@@ -189,10 +185,24 @@ if __name__ == "__main__":
     print()
     print("Enter the full path to your folder.")
     print("Example: /Users/yourname/Documents/SmartRez/")
+    print("Press Enter with no path to quit.")
     print()
-    base_folder = input("Folder path: ").strip()
 
-    # Remove accidental quotes if someone pastes a quoted path
-    base_folder = base_folder.strip('"').strip("'")
+    while True:
+        base_folder = input("Folder path (or press Enter to quit): ").strip()
+
+        # Empty input = quit
+        if not base_folder:
+            print("Exiting.")
+            sys.exit(0)
+
+        # Remove accidental quotes if someone pastes a quoted path
+        base_folder = base_folder.strip('"').strip("'")
+
+        if os.path.isdir(base_folder):
+            break
+
+        print(f"  Warning: Folder not found: '{base_folder}'")
+        print("  Please check the path and try again.\n")
 
     convert_and_rename(base_folder)
